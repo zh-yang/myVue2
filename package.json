@@ -1,0 +1,27 @@
+{
+    "name": "myVue2",
+    "version": "1.0.0",
+    "description": "learn vue2",
+    "main": "index.js",
+    "scripts": {
+        "test": "grunt"
+    },
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-cli": "^0.1.13",
+        "grunt-contrib-watch": "~0.4.4",
+        "grunt-contrib-jshint": "~0.6.0",
+        "grunt-component-build": "~0.3.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/zh-yang/myVue2.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/zh-yang/myVue2/issues"
+    },
+    "homepage": "https://github.com/zh-yang/myVue2#readme"
+}
