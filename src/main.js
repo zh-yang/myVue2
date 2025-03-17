@@ -97,10 +97,9 @@ function bindAccessors (seed, key, binding) {
         set: function (value) {
             binding.value = value
             binding.directives.forEach(function (directive) {
-                var filteredValue = value
-                if (value && directive.filters) {
-                    filteredValue = applyFilters(value, directive)
-                }
+                var filteredValue = value && directive.filters
+                    ? applyFilters(value, directive)
+                    : value
                 directive.update(
                     directive.el,
                     filteredValue, // filter value should not be written
