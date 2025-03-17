@@ -1,13 +1,14 @@
 {
     "eqeqeq": true,
     "browser": true,
-    "asi": false,
+    "asi": true,
     "multistr": true,
     "undef": true,
     "unused": true,
     "trailing": true,
     "sub": true,
     "node": true,
+    "laxbreak": true,
     "globals": {
         "console": true
     }
