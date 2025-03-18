@@ -5,6 +5,7 @@
     "scripts": [
         "src/main.js",
         "src/directives.js",
+        "src/directive.js",
         "src/filters.js"
     ],
     "standalone": "vue"
