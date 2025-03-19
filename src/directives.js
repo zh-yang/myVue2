@@ -1,3 +1,6 @@
+// var config     = require('./config'),
+    var watchArray = require('./watchArray')
+
 module.exports = {
     text: function (value) {
         this.el.textContent = value || ''
@@ -19,7 +22,6 @@ module.exports = {
                 this.el.removeEventListener(event, handlers[event])
             }
             if (handler) {
-                handler = handler.bind(this.el)
                 this.el.addEventListener(event, handler)
                 handlers[event] = handler
             }
@@ -32,16 +34,29 @@ module.exports = {
         },
     },
     each: {
-        update: function () {
-            // augmentArray(collection, this)
-            // console.log('collection updated')
+        update: function (collection) {
+            watchArray(collection, this.mutate.bind(this))
+            // for each in array
+            //   - create a Seed element using the el's outerHTML and raw data object
+            //   - replace the raw object with new Seed's scope object
+        },
+        mutate: function (mutation) {
+            console.log(mutation)
+            console.log(this)
         }
-        // mutate: function (mutation) {
-            
-        // }
     }
 }
 
+// var push = [].push,
+//     slice = [].slice
+
 // function augmentArray (collection, directive) {
-    
+//     collection.push = function (element) {
+//         push.call(this, arguments)
+//         directive.mutate({
+//             event: 'push',
+//             elements: slice.call(arguments),
+//             collection: collection
+//         })
+//     }
 // }
