@@ -62,3 +62,31 @@ VueCop = {
     }
 }
 ```
+
+
+# 0.0.6 初步实现循环渲染
+> 有一定的局限性，如：只支持对象列表循环渲染
+```html
+<li sd-each-todo="todos">
+    <span class="todo" sd-text="todo.title" sd-class-done="todo.done"></span>   
+</li>
+```
+```js
+// 循环渲染的元素，用新的Seed示例维护，每一条都有一个实例
+new Seed(rootEl)
+`sd-each-todo="todos"` /*--->*/ bind() {
+    this.el['sd-block'] = true
+    this.prefixRE = 'todo.'
+    this.el.remove()
+    this.childSeeds = []
+} /*--->*/ setScope() {
+    this.scope.todos = [ {  } ]
+} /*--->*/ update() {
+    todos/*this.value*/.forEach((item, i) => {
+        const spore = new Seed(cnode = this.el.cloneNode)
+        this.el.parentNode.insertBefore(cnode)
+        todos[i] = spore.scope
+        this.childSeeds.push(spore)
+    })
+}
+```
