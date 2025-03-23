@@ -37,8 +37,11 @@ module.exports = {
     },
     each: {
         bind: function () {
+            if (this.el['sd-block']) {
+                return
+            }
             this.el['sd-block'] = true
-            this.prefixRE = new RegExp('^' + this.arg + '.')
+            this.prefixRE = new RegExp('^' + this.arg + '\\.')
             var ctn = this.container = this.el.parentNode
             this.marker = document.createComment('sd-each-' + this.arg + '-marker')
             ctn.insertBefore(this.marker, this.el)
@@ -46,6 +49,9 @@ module.exports = {
             this.childSeeds = []
         },
         update: function (collection) {
+            if (!this.childSeeds) {
+                return
+            }
             if (this.childSeeds.length) {
                 this.childSeeds.forEach(function (child) {
                     child.destroy()
@@ -64,9 +70,10 @@ module.exports = {
         buildItem: function (data, index, collection) {
             var Seed       = require('./seed');
             var node = this.el.cloneNode(true),
-                ctrl = node.getAttribute(config.prefix + '-controller'),
-                Ctrl = ctrl ? controllers[ctrl] : Seed
+            ctrl = node.getAttribute(config.prefix + '-controller'),
+            Ctrl = ctrl ? controllers[ctrl] : Seed
             if (ctrl) node.removeAttribute(config.prefix + '-controller')
+            node['sd-block'] = true;
             var spore = new Ctrl(node, data, {
                     eachPrefixRE: this.prefixRE,
                     parentScope: this.seed.scope

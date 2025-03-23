@@ -68,7 +68,7 @@ Seed.prototype._bind = function (node, bindingInstance) {
     bindingInstance.seed = this
     bindingInstance.el = node
 
-    node.removeAttribute(config.prefix + '-' + bindingInstance.directiveName)
+    // node.removeAttribute(config.prefix + '-' + bindingInstance.directiveName)
 
     var key = bindingInstance.key,
         scope = this.scope,
@@ -77,7 +77,7 @@ Seed.prototype._bind = function (node, bindingInstance) {
     // TODO make scope chain work on nested controllers
     if (isEach) {
         key = key.replace(epr, '')
-        scope = this._options.parentScope
+        // scope = this._options.parentScope
     }
 
     var binding  = this._bindings[key] || this._createBinding(key, scope)
