@@ -22,11 +22,12 @@
             <p class="button">Change Message</p>
             <p sd-class="red:error" sd-show="error">Error</p>
             <ul sd-show="todos">
-            	<li sd-each="todo:todos" class="todo"
+            	<li class="todo"
                     sd-controller="Todo"
+                    sd-each="todo:todos"
                     sd-class="done:todo.done"
                     sd-on="click:changeMessage, click:todo.toggle"
-                    sd-text="todo.title"
+                    sd-text="msg"
                 ></li>
             </ul>
         </div>
@@ -38,8 +39,9 @@
 			})
 
             Vue.controller('TodoList', function(scope, seed) {
+                console.log('controller invoked')
                 scope.changeMessage = function () {
-                    scope.msg = 'It works!'
+                    scope.msg = (Math.random() * 100).toFixed(2) + '% awesomeness'
                 }
                 scope.remove = function () {
                     seed.destroy()
@@ -55,7 +57,7 @@
             var s = Date.now()
 
             var data = {
-                msg: 'hello!',
+                msg: 'message',
                 total: 9999,
                 error: true,
                 todos: [
