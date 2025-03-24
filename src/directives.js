@@ -1,6 +1,5 @@
 var watchArray = require('./watchArray'),
-    config     = require('./config'),
-    controllers = require('./controllers')
+    config     = require('./config')
 
 module.exports = {
     text: function (value) {
@@ -15,17 +14,12 @@ module.exports = {
     on: {
         update: function (handler) {
             var event = this.arg
-            if (!this.handlers) {
-                this.handlers = {}
-            }
-            var handlers = this.handlers
-            if (handlers[event]) {
-                this.el.removeEventListener(event, handlers[event])
+            if (this.handler) {
+                this.el.removeEventListener(event, this.handler)
             }
             if (handler) {
-                handler = handler.bind(this.seed)
                 this.el.addEventListener(event, handler)
-                handlers[event] = handler
+                this.handler = handler
             }
         },
         unbind: function () {
@@ -37,7 +31,7 @@ module.exports = {
     },
     each: {
         bind: function () {
-            this.el['sd-block'] = true
+            this.el.removeAttribute(config.prefix + '-each')
             this.prefixRE = new RegExp('^' + this.arg + '.')
             var ctn = this.container = this.el.parentNode
             this.marker = document.createComment('sd-each-' + this.arg + '-marker')
@@ -63,13 +57,10 @@ module.exports = {
         },
         buildItem: function (data, index, collection) {
             var Seed       = require('./seed');
-            var node = this.el.cloneNode(true),
-                ctrl = node.getAttribute(config.prefix + '-controller'),
-                Ctrl = ctrl ? controllers[ctrl] : Seed
-            if (ctrl) node.removeAttribute(config.prefix + '-controller')
-            var spore = new Ctrl(node, data, {
+            var node = this.el.cloneNode(true);
+            var spore = new Seed(node, data, {
                     eachPrefixRE: this.prefixRE,
-                    parentScope: this.seed.scope
+                    parentSeed: this.seed
                 })
             this.container.insertBefore(node, this.marker)
             collection[index] = spore.scope
