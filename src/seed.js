@@ -47,6 +47,8 @@ function Seed (el, data, options) {
         if (!controller) throw new Error('controller ' + ctrlID + ' is not defined.')
     }
 
+    this._controller = controller
+
     // process nodes for directives
     // first, child with sd-each directive
 
@@ -58,14 +60,21 @@ function Seed (el, data, options) {
     }
     delete this._dataCopy
 
-    // copy in methods from controller
-    if (controller) {
-        controller.call(this, this.scope, this)
-    }
-
+    
+    this._updateController()
 }
 
 Emitter(Seed.prototype)
+
+Seed.prototype._updateController = function() {
+    // copy in methods from controller
+    var self = this
+    setTimeout(function () {
+        if (self._controller) {
+            self._controller(self.scope, self)
+        }
+    });
+}
 
 Seed.prototype._compileNode = function (node, root) {
     var self = this
