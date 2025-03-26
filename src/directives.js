@@ -1,6 +1,29 @@
 var watchArray = require('./watch-array'),
     config     = require('./config')
 
+// sniff matchesSelector() method name.
+
+var matches = 'atchesSelector',
+    prefixes = ['m', 'webkitM', 'mozM', 'msM']
+
+prefixes.some(function (prefix) {
+    var match = prefix + matches
+    if (document.body[match]) {
+        matches = match
+        return true
+    }
+})
+
+function delegateCheck (current, top, selector) {
+    if (current.webkitMatchesSelector(selector)) {
+        return current
+    } else if (current === top) {
+        return false
+    } else {
+        return delegateCheck(current.parentNode, top, selector)
+    }
+}
+
 module.exports = {
     text: function (value) {
         this.el.textContent = value === null ? '' : value.toString()
@@ -35,14 +58,42 @@ module.exports = {
     },
     on: {
         fn: true,
-        update: function (handler) {
-            var self = this,
-                event = this.arg
-            if (this.handler) {
-                this.el.removeEventListener(event, this.handler)
+        bind: function () {
+            if (this.seed.each) {
+                this.selector = '[' + this.directiveName + '*="' + this.expression + '"]'
+                this.delegator = this.seed.el.parentNode
             }
-            if (handler) {
-                var proxy = function (e) {
+        },
+        update: function (handler) {
+            this.unbind()
+            if (!handler) return
+            var self  = this,
+                event = this.arg,
+                selector  = this.selector,
+                delegator = this.delegator
+            if (delegator) {
+
+                // for each blocks, delegate for better performance
+                if (!delegator[selector]) {
+                    console.log('binding listener')
+                    delegator[selector] = function (e) {
+                        var target = delegateCheck(e.target, delegator, selector)
+                        if (target) {
+                            handler({
+                                el            : target,
+                                originalEvent : e,
+                                directive     : self,
+                                seed          : target.seed
+                            })
+                        }
+                    }
+                    delegator.addEventListener(event, delegator[selector])
+                }
+
+            } else {
+
+                // a normal handler
+                this.handler = function (e) {
                     handler({
                         el            : e.currentTarget,
                         originalEvent : e,
@@ -50,13 +101,18 @@ module.exports = {
                         seed          : self.seed
                     })
                 }
-                this.el.addEventListener(event, proxy)
-                this.handler = proxy
+                this.el.addEventListener(event, this.handler)
+
             }
         },
         unbind: function () {
-            var event = this.arg
-            if (this.handler) {
+            var event = this.arg,
+                selector  = this.selector,
+                delegator = this.delegator
+            if (delegator && delegator[selector]) {
+                delegator.removeEventListener(event, delegator[selector])
+                delete delegator[selector]
+            } else if (this.handler) {
                 this.el.removeEventListener(event, this.handler)
             }
         },
@@ -85,6 +141,7 @@ module.exports = {
             var Seed       = require('./seed');
             var node = this.el.cloneNode(true);
             var spore = new Seed(node, {
+                    each: true,
                     eachPrefix: new RegExp('^' + this.arg + '.'),
                     parentSeed: this.seed,
                     index: index,
@@ -107,17 +164,3 @@ module.exports = {
         }
     }
 }
-
-// var push = [].push,
-//     slice = [].slice
-
-// function augmentArray (collection, directive) {
-//     collection.push = function (element) {
-//         push.call(this, arguments)
-//         directive.mutate({
-//             event: 'push',
-//             elements: slice.call(arguments),
-//             collection: collection
-//         })
-//     }
-// }
