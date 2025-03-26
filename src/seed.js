@@ -15,7 +15,6 @@ function Seed (el, options) {
         el = document.querySelector(el)
     }
 
-    el.seed        = this
     this.el         = el
     this._bindings  = {}
 
@@ -50,8 +49,6 @@ function Seed (el, options) {
 
     this._updateController()
 }
-
-Emitter(Seed.prototype)
 
 Seed.prototype._updateController = function() {
     // copy in methods from controller
@@ -193,17 +190,30 @@ Seed.prototype._createBinding = function (key) {
     return binding
 }
 
-Seed.prototype.destroy = function () {
-    for (var key in this._bindings) {
-        this._bindings[key].instances.forEach(unbind)
-    }
-    this.el.parentNode.removeChild(this.el)
-    function unbind (instance) {
+Seed.prototype.unbind = function () {
+    var unbind = function (instance) {
         if (instance.unbind) {
             instance.unbind()
         }
     }
+    for (var key in this._bindings) {
+        this._bindings[key].instances.forEach(unbind)
+    }
+    if (this.childSeeds) {
+        this.childSeeds.forEach(function (child) {
+            child.unbind()
+        })
+    }
 }
 
+Seed.prototype.destroy = function () {
+    this.unbind()
+    this.el.parentNode.removeChild(this.el)
+    if (this.parentSeed && this.id) {
+        delete this.parentSeed['$' + this.id]
+    }
+}
+
+Emitter(Seed.prototype)
 
 module.exports = Seed

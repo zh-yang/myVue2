@@ -3,29 +3,11 @@ var config     = require('./config'),
     directives = require('./directives'),
     filters    = require('./filters')
 
-var controllers = config.controllers = {},
-    datum       = config.datum = {},
+var controllers = config.controllers,
+    datum       = config.datum,
     api         = {}
 
 // API
-
-api.extend = function (opts) {
-    var Spore = function () {
-        Seed.apply(this, arguments)
-        for (var prop in this.extensions) {
-            var ext = this.extensions[prop]
-            this.scope[prop] = (typeof ext === 'function')
-                ? ext.bind(this)
-                : ext
-        }
-    }
-    Spore.prototype = Object.create(Seed.prototype)
-    Spore.prototype.extensions = {}
-    for (var prop in opts) {
-        Spore.prototype.extensions[prop] = opts[prop]
-    }
-    return Spore
-}
 
 api.data = function (id, data) {
     if (!data) return datum[id]
@@ -41,6 +23,14 @@ api.controller = function (id, extensions) {
         console.warn('controller "' + id + '" already exists and has been overwritten.')
     }
     controllers[id] = extensions
+}
+
+api.directive = function (name, fn) {
+    directives[name] = fn
+}
+
+api.filter = function (name, fn) {
+    filters[name] = fn
 }
 
 api.bootstrap = function (opts) {
@@ -60,14 +50,6 @@ api.bootstrap = function (opts) {
         el = document.querySelector('[' + config.prefix + '-controller]')
     }
     return n > 1 ? app : seed
-}
-
-api.directive = function (name, fn) {
-    directives[name] = fn
-}
-
-api.filter = function (name, fn) {
-    filters[name] = fn
 }
 
 module.exports = api
