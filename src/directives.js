@@ -34,6 +34,7 @@ module.exports = {
         }
     },
     on: {
+        fn: true,
         update: function (handler) {
             var self = this,
                 event = this.arg
@@ -70,12 +71,8 @@ module.exports = {
             this.childSeeds = []
         },
         update: function (collection) {
-            if (this.childSeeds.length) {
-                this.childSeeds.forEach(function (child) {
-                    child.destroy()
-                })
-                this.childSeeds = []
-            }
+            this.unbind(true)
+            this.childSeeds = []
             if (!Array.isArray(collection)) return
             watchArray(collection, this.mutate.bind(this))
             var self = this
@@ -84,10 +81,6 @@ module.exports = {
             })
             console.log('collection creation done.')
         },
-        mutate: function (mutation) {
-            console.log(mutation)
-            this.update(mutation.array)
-        },
         buildItem: function (data, index, collection) {
             var Seed       = require('./seed');
             var node = this.el.cloneNode(true);
@@ -95,12 +88,22 @@ module.exports = {
                     eachPrefix: new RegExp('^' + this.arg + '.'),
                     parentSeed: this.seed,
                     index: index,
-                    eachCollection: collection,
                     data: data
                 })
             this.container.insertBefore(node, this.marker)
             collection[index] = spore.scope
             return spore
+        },
+        mutate: function (mutation) {
+            this.update(mutation.array)
+        },
+        unbind: function (rm) {
+            if (this.childSeeds.length) {
+                var fn = rm ? '_destroy' : '_unbind'
+                this.childSeeds.forEach(function (child) {
+                    child[fn]()
+                })
+            }
         }
     }
 }
