@@ -87,7 +87,6 @@ module.exports = {
         mutate: function (mutation) {
             console.log(mutation)
             this.update(mutation.array)
-            this.seed._updateController()
         },
         buildItem: function (data, index, collection) {
             var Seed       = require('./seed');
