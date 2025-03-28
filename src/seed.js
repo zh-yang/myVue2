@@ -7,19 +7,6 @@ var slice = Array.prototype.slice,
     ctrlAttr = config.prefix + '-controller',
     eachAttr = config.prefix + '-each'
 
-function determinScope (key, scope) {
-    if (key.nesting) {
-        var levels = key.nesting
-        while (scope.parentSeed && levels--) {
-            scope = scope.parentSeed
-        }
-    } else if (key.root) {
-        while (scope.parentSeed) {
-            scope = scope.parentSeed
-        }
-    }
-    return scope
-}
 function Seed (el, options) {
 
     if (typeof el === 'string') {
@@ -43,6 +30,12 @@ function Seed (el, options) {
             || config.datum[el.getAttribute(dataPrefix)]
             || {}
     el.removeAttribute(dataPrefix)
+    
+    // if the passed in data is already consumed by
+    // a Seed instance, make a copy from it
+    if (scope.$seed) {
+        scope = this.scope = scope.$dump()
+    }
 
     scope.$seed    = this
     scope.$destroy = this._destroy.bind(this)
@@ -74,7 +67,7 @@ Seed.prototype._compileNode = function (node, root) {
     if (node.nodeType === 3) {
         // text node
         self._compileTextNode(node)
-    } else {
+    } else if (node.nodeType !== 8) { // exclude comment nodes
         var eachExp = node.getAttribute(eachAttr),
             ctrlExp = node.getAttribute(ctrlAttr)
         if (eachExp) {
@@ -155,9 +148,7 @@ Seed.prototype._bind = function (node, directive) {
     }
 
     // set initial value
-    if (binding.value) {
-        directive.update(binding.value)
-    }
+    directive.update(binding.value)
 
     // computed properties
     if (directive.deps) {
@@ -251,5 +242,21 @@ Seed.prototype._dump = function () {
 }
 
 Emitter(Seed.prototype)
+
+// Helpers --------------------------------------------------------------------
+
+function determinScope (key, scope) {
+    if (key.nesting) {
+        var levels = key.nesting
+        while (scope.parentSeed && levels--) {
+            scope = scope.parentSeed
+        }
+    } else if (key.root) {
+        while (scope.parentSeed) {
+            scope = scope.parentSeed
+        }
+    }
+    return scope
+}
 
 module.exports = Seed
