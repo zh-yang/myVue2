@@ -1,13 +1,25 @@
 var Emitter       = require('./Emitter'),
     config      = require('./config'),
-    DirectiveParser   = require('./directive-parser');
+    DirectiveParser   = require('./directive-parser'),
+    TextNodeParser  = require('./textnode-parser');
 
-var slice = Array.prototype.slice
-
-var ancestorKeyRE = /\^/g,
+var slice = Array.prototype.slice,
     ctrlAttr = config.prefix + '-controller',
     eachAttr = config.prefix + '-each'
 
+function determinScope (key, scope) {
+    if (key.nesting) {
+        var levels = key.nesting
+        while (scope.parentSeed && levels--) {
+            scope = scope.parentSeed
+        }
+    } else if (key.root) {
+        while (scope.parentSeed) {
+            scope = scope.parentSeed
+        }
+    }
+    return scope
+}
 function Seed (el, options) {
 
     if (typeof el === 'string') {
@@ -39,8 +51,6 @@ function Seed (el, options) {
     scope.$emit     = this.emit.bind(this)
     scope.$index   = options.index
     scope.$parent  = options.parentSeed && options.parentSeed.scope
-
-    this._controller = controller
 
     // recursively process nodes for directives
     this._compileNode(el, true)
@@ -111,7 +121,7 @@ Seed.prototype._compileNode = function (node, root) {
 }
 
 Seed.prototype._compileTextNode = function (node) {
-    return node
+    return TextNodeParser.parse(node)
 }
 
 Seed.prototype._bind = function (node, directive) {
@@ -119,47 +129,25 @@ Seed.prototype._bind = function (node, directive) {
     directive.el = node
 
     var key = directive.key,
-        snr = this.eachPrefix,
-        isEachKey = snr && snr.test(key),
-        scopeOwner = this
+        epr = this.eachPrefix,
+        isEachKey = epr && epr.test(key),
+        scope = this
     
     if (isEachKey) {
-        key = key.replace(snr, '')
+        key = directive.key = key.replace(epr, '')
     }
 
-    // handle scope nesting
-    if (snr && !isEachKey) {
-        scopeOwner = this.parentSeed
-    } else {
-        var ancestors = key.match(ancestorKeyRE),
-            root      = key.charAt(0) === '$'
-        if (ancestors) {
-            key = key.replace(ancestorKeyRE, '')
-            var levels = ancestors.length
-            while (scopeOwner.parentSeed && levels--) {
-                scopeOwner = scopeOwner.parentSeed
-            }
-        } else if (root) {
-            key = key.slice(1)
-            while (scopeOwner.parentSeed) {
-                scopeOwner = scopeOwner.parentSeed
-            }
-        }
+    if (epr && !isEachKey) {
+        scope = this.parentSeed
     }
-
-    directive.key = key
-
-    // computed properties
-    if (directive.deps) {
-        directive.deps.forEach(function (dep) {
-            console.log(dep)
-        })
-    }
-
-    var binding  = scopeOwner._bindings[key] || scopeOwner._createBinding(key)
+    var ownerScope = determinScope(directive, scope),
+        binding =
+            ownerScope._bindings[key] ||
+            ownerScope._createBinding(key)
 
     // add directive to this binding
     binding.instances.push(directive)
+    directive.binding = binding
 
     // invoke bind hook if exists
     if (directive.bind) {
@@ -169,6 +157,25 @@ Seed.prototype._bind = function (node, directive) {
     // set initial value
     if (binding.value) {
         directive.update(binding.value)
+    }
+
+    // computed properties
+    if (directive.deps) {
+        directive.deps.forEach(function (dep) {
+            var depScope = determinScope(dep, scope),
+                depBinding =
+                    depScope._bindings[dep.key] ||
+                    depScope._createBinding(dep.key)
+            if (!depBinding.dependents) {
+                depBinding.dependents = []
+                depBinding.refreshDependents = function () {
+                    depBinding.dependents.forEach(function (dept) {
+                        dept.refresh()
+                    })
+                }
+            }
+            depBinding.dependents.push(directive)
+        })
     }
 
 }
@@ -195,6 +202,9 @@ Seed.prototype._createBinding = function (key) {
             binding.instances.forEach(function (instance) {
                 instance.update(value)
             })
+            if (binding.refreshDependents) {
+                binding.refreshDependents()
+            }
         }
     })
 

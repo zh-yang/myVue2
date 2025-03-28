@@ -39,9 +39,7 @@ api.bootstrap = function (opts) {
     if (opts) {
         config.prefix = opts.prefix || config.prefix
     }
-    var app = {},
-        n = 0,
-        el, seed
+    var app = {}, n = 0, el, seed
     el = document.querySelector('[' + config.prefix + '-controller]')
     while (el) {
         seed = new Seed(el)

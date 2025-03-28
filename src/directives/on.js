@@ -47,7 +47,7 @@ module.exports = {
                 delegator[selector] = function (e) {
                     var target = delegateCheck(e.target, delegator, selector)
                     if (target) {
-                        handler({
+                        handler.call(self.seed.scope, {
                             originalEvent : e,
                             el            : target,
                             scope         : target.seed.scope
@@ -61,7 +61,7 @@ module.exports = {
 
             // a normal handler
             this.handler = function (e) {
-                handler({
+                handler.call(self.seed.scope, {
                     originalEvent : e,
                     el            : e.currentTarget,
                     scope         : self.seed.scope
