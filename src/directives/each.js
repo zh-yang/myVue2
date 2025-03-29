@@ -1,18 +1,5 @@
 var config = require('../config')
 
-
-var augmentations = {
-    remove: function (scope) {
-        this.splice(scope.$index, 1)
-    },
-    replace: function (index, data) {
-        if (typeof index !== 'number') {
-            index = index.$index
-        }
-        this.splice(index, 1, data)
-    }
-}
-
 var mutationHandlers = {
     push: function (m) {
         var self = this
@@ -33,12 +20,12 @@ var mutationHandlers = {
                      : self.marker
             self.container.insertBefore(seed.el, ref)
         })
-        self.reorder()
+        self.updateIndexes()
     },
     shift: function (m) {
         m.result.$destroy()
         var self = this
-        self.reorder()
+        self.updateIndexes()
     },
     splice: function (m) {
         var self    = this,
@@ -59,7 +46,7 @@ var mutationHandlers = {
             })
         }
         if (removed !== added) {
-            self.reorder()
+            self.updateIndexes()
         }
     },
     sort: function () {
@@ -72,27 +59,7 @@ var mutationHandlers = {
 }
 mutationHandlers.reverse = mutationHandlers.sort
 
-function watchArray (collection, callback) {
-    
-    Object.keys(mutationHandlers).forEach(function (method) {
-        collection[method] = function() {
-            var result = Array.prototype[method].apply(this, arguments)
-            callback({
-                method: method,
-                args: Array.prototype.slice.call(arguments),
-                result: result
-            })
-        }
-    })
-
-    for (var method in augmentations) {
-        collection[method] = augmentations[method]
-    }
-}
-
 module.exports = {
-
-    mutationHandlers: mutationHandlers,
 
     bind: function () {
         this.el.removeAttribute(config.prefix + '-each')
@@ -107,13 +74,8 @@ module.exports = {
         if (!Array.isArray(collection)) return
         this.collection = collection
         var self = this
-        watchArray(collection, function (mutation) {
-            if (self.mutationHandlers) {
-                self.mutationHandlers[mutation.method].call(self, mutation)
-            }
-            if (self.binding.refreshDependents) {
-                self.binding.refreshDependents()
-            }
+        collection.on('mutate', function (mutation) {
+            mutationHandlers[mutation.method].call(self, mutation)
         })
         collection.forEach(function (data, i) {
             var seed = self.buildItem(data, i)
@@ -135,7 +97,7 @@ module.exports = {
         return spore
     },
 
-    reorder: function () {
+    updateIndexes: function () {
         this.collection.forEach(function (scope, i) {
             scope.$index = i
         })
