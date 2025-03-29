@@ -67,7 +67,7 @@ Seed.prototype._compileNode = function (node, root) {
     if (node.nodeType === 3) {
         // text node
         self._compileTextNode(node)
-    } else if (node.nodeType !== 8) { // exclude comment nodes
+    } else if (node.nodeType === 1) { // exclude comment nodes
         var eachExp = node.getAttribute(eachAttr),
             ctrlExp = node.getAttribute(ctrlAttr)
         if (eachExp) {
@@ -187,7 +187,7 @@ Seed.prototype._createBinding = function (key) {
             return binding.value
         },
         set: function (value) {
-            if (value === binding) return
+            if (value === binding.value) return
             binding.changed = true
             binding.value = value
             binding.instances.forEach(function (instance) {
