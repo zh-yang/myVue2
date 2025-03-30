@@ -7,6 +7,8 @@ module.exports = function (grunt) {
             build: {
                 output: './dist/',
                 name: 'vue',
+                dev: true,
+                sourceUrls: true,
                 styles: false,
                 scripts: true,
                 verbose: true

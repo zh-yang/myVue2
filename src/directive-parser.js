@@ -7,6 +7,7 @@ var KEY_RE          = /^[^\|<]+/,
     FILTERS_RE      = /\|[^\|<]+/g,
     FILTER_TOKEN_RE = /[^\s']+|'[^']+'/g,
     DEPS_RE         = /<[^<\|]+/g,
+    INVERSE_RE      = /^!/,
     NESTING_RE      = /^\^+/
 
 // parse a key, extract argument and nesting/root info
@@ -22,6 +23,11 @@ function parseKey (rawKey) {
     res.arg = argMatch
         ? argMatch[1].trim()
         : null
+
+    res.inverse = INVERSE_RE.test(res.key)
+    if (res.inverse) {
+        res.key = res.key.slice(1)
+    }
 
     var nesting = res.key.match(NESTING_RE)
     res.nesting = nesting
