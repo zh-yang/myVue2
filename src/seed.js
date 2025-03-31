@@ -44,9 +44,10 @@ function Seed (el, options) {
     scope.$emit     = this.emit.bind(this)
     scope.$index   = options.index
     scope.$parent  = options.parentSeed && options.parentSeed.scope
+    scope.$refresh  = this._refreshBinding.bind(this)
 
     // update bindings when a property is set
-    this.on('set', this._updateBinding.bind(this))
+    this.on('set'+scope.$index||'', this._updateBinding.bind(this))
 
     // recursively compile nodes for directives
     this._compileNode(el, true)
@@ -192,7 +193,7 @@ Seed.prototype._createBinding = function (key) {
         },
         set: function (value) {
             if (value === binding.value) return
-            seed.emit('set', key, value)
+            seed.emit('set'+seed.scope.$index||'', key, value)
         }
     })
 
@@ -211,9 +212,11 @@ Seed.prototype._updateBinding = function (key, value) {
         if (value.get) { // computed property
             type = 'Computed'
             value = value.get
+        } else { // normal object
+            // TODO watchObject
         }
     } else if (type === 'Array') {
-        augmentArray(value)
+        watchArray(value)
         value.on('mutate', function () {
             if (binding.dependents) {
                 binding.refreshDependents()
@@ -235,6 +238,13 @@ Seed.prototype._updateBinding = function (key, value) {
         binding.refreshDependents()
     }
 
+}
+
+Seed.prototype._refreshBinding = function (key) {
+    var binding = this._bindings[key]
+    binding.instances.forEach(function (instance) {
+        instance.refresh()
+    })
 }
 
 Seed.prototype._unbind = function () {
@@ -313,7 +323,7 @@ var arrayAugmentations = {
         this.splice(index, 1, data)
     }
 }
-function augmentArray (collection) {
+function watchArray (collection) {
     Emitter(collection)
     arrayMutators.forEach(function (method) {
         collection[method] = function () {

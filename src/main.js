@@ -39,15 +39,16 @@ api.bootstrap = function (opts) {
     if (opts) {
         config.prefix = opts.prefix || config.prefix
     }
-    var app = {}, n = 0, el, seed
-    el = document.querySelector('[' + config.prefix + '-controller]')
-    while (el) {
+    var app = {}, n = 0, el, seed,
+        ctrlSlt = '[' + config.prefix + '-controller]',
+        dataSlt = '[' + config.prefix + '-data]'
+    /* jshint boss: true */
+    while (el = document.querySelector(ctrlSlt) || document.querySelector(dataSlt)) {
         seed = new Seed(el)
         if (el.id) {
             app['$' + el.id] = seed
         }
         n++
-        el = document.querySelector('[' + config.prefix + '-controller]')
     }
     return n > 1 ? app : seed
 }
