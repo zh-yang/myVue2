@@ -17,7 +17,7 @@
             <input id="new-todo" autofocus sd-on="keyup:addTodo | key enter" placeholder="What needs to be done?">
         </header>
 
-        <section id="main" sd-show="total < todos">
+        <section id="main" sd-show="total">
             <input id="toggle-all" type="checkbox" sd-checked="allDone" sd-on="change:toggleAll">
             <ul id="todo-list">
                 <!-- a single todo item -->
@@ -34,10 +34,10 @@
         </section>
 
         <!-- footer controls -->
-        <footer id="footer" sd-show="total < todos">
+        <footer id="footer" sd-show="total">
             <span id="todo-count">
                 <strong sd-text="remaining"></strong>
-                <span sd-text="itemLabel < remaining"></span>
+                <span sd-text="itemLabel"></span>
                 left
             </span>
             <ul id="filters">
@@ -46,7 +46,7 @@
                 <li><a href="#/completed" data-filter="completed" sd-on="click:setFilter">Completed</a></li>
             </ul>
             <button id="clear-completed" sd-on="click:removeCompleted">
-                Remove Completed (<span sd-text="completed < total remaining"></span>)
+                Remove Completed (<span sd-text="completed"></span>)
             </button>
         </footer>
 

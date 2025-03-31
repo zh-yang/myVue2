@@ -6,7 +6,7 @@ var KEY_RE          = /^[^\|<]+/,
     ARG_RE          = /([^:]+):(.+)$/,
     FILTERS_RE      = /\|[^\|<]+/g,
     FILTER_TOKEN_RE = /[^\s']+|'[^']+'/g,
-    DEPS_RE         = /<[^<\|]+/g,
+    // DEPS_RE         = /<[^<\|]+/g,
     INVERSE_RE      = /^!/,
     NESTING_RE      = /^\^+/
 
@@ -91,26 +91,20 @@ function Directive (directiveName, expression) {
     this.filters = filterExps
         ? filterExps.map(parseFilter)
         : null
-    
-    var depExp = expression.match(DEPS_RE)
-    this.deps = depExp
-        ? depExp[0].slice(1).trim().split(/\s+/).map(parseKey)
-        : null
 }
 
 // called when a dependency has changed
 Directive.prototype.refresh = function () {
-    if (this.value) {
-        var value = this.value.call(this.seed.scope)
+    var getter = this.value
+    if (getter && typeof getter === 'function') {
+        var value = getter.call(this.seed.scope)
         this._update(
             this.filters
             ? this.applyFilters(value)
             : value
         )
     }
-    if (this.binding.refreshDependents) {
-        this.binding.refreshDependents()
-    }
+    this.binding.emitChange()
 }
 
 // called when a new value is set
@@ -126,7 +120,9 @@ Directive.prototype.update = function (value) {
         ? this.applyFilters(value)
         : value
     )
-    if (this.deps) this.refresh()
+    if (this.binding.isComputed) {
+        this.refresh()
+    }
 }
 
 Directive.prototype.applyFilters = function (value) {
