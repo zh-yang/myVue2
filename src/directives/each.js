@@ -66,13 +66,16 @@ module.exports = {
         var ctn = this.container = this.el.parentNode
         this.marker = document.createComment('sd-each-' + this.arg)
         ctn.insertBefore(this.marker, this.el)
+        this.delegator = this.el.parentNode
         ctn.removeChild(this.el)
     },
 
     update: function (collection) {
         this.unbind(true)
+        // for event delegation
         if (!Array.isArray(collection)) return
         this.collection = collection
+        this.delegator.sdDelegationHandlers = {}
         var self = this
         collection.on('mutate', function (mutation) {
             mutationHandlers[mutation.method].call(self, mutation)
@@ -88,10 +91,11 @@ module.exports = {
             node = this.el.cloneNode(true)
         var spore = new Seed(node, {
                 each: true,
-                eachPrefix: new RegExp('^' + this.arg + '.'),
+                eachPrefixRE: new RegExp('^' + this.arg + '.'),
                 parentSeed: this.seed,
                 index: index,
-                data: data
+                data: data,
+                delegator: this.delegator
             })
         this.collection[index] = spore.scope
         return spore
@@ -103,13 +107,21 @@ module.exports = {
         })
     },
 
-    unbind: function (rm) {
+    unbind: function (reset) {
         if (this.collection && this.collection.length) {
-            var fn = rm ? '_destroy' : '_unbind'
+            var fn = reset ? '_destroy' : '_unbind'
             this.collection.forEach(function (scope) {
                 scope.$seed[fn]()
             })
             this.collection = null
+        }
+        var delegator = this.delegator
+        if (delegator) {
+            var handlers = delegator.sdDelegationHandlers
+            for (var key in handlers) {
+                delegator.removeEventListener(handlers[key].event, handlers[key])
+            }
+            delete delegator.sdDelegationHandlers
         }
     }
 }

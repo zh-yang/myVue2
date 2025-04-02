@@ -6,11 +6,12 @@ var KEY_RE          = /^[^\|<]+/,
     ARG_RE          = /([^:]+):(.+)$/,
     FILTERS_RE      = /\|[^\|<]+/g,
     FILTER_TOKEN_RE = /[^\s']+|'[^']+'/g,
-    // DEPS_RE         = /<[^<\|]+/g,
     INVERSE_RE      = /^!/,
     NESTING_RE      = /^\^+/
 
-// parse a key, extract argument and nesting/root info
+/*
+ *  parse a key, extract argument and nesting/root info
+ */
 function parseKey (rawKey) {
 
     var res = {},
@@ -44,7 +45,9 @@ function parseKey (rawKey) {
 
     return res
 }
-
+/*
+ *  parse a filter expression
+ */
 function parseFilter (filter) {
 
     var tokens = filter.slice(1)
@@ -61,7 +64,10 @@ function parseFilter (filter) {
                 : null
     }
 }
-
+/*
+ *  Directive class
+ *  represents a single instance of DOM-data connection
+ */
 function Directive (directiveName, expression) {
 
     var prop, directive = directives[directiveName]
@@ -78,10 +84,10 @@ function Directive (directiveName, expression) {
     }
 
     this.directiveName = directiveName
-    this.expression = expression
+    this.expression    = expression.trim()
+    this.rawKey        = expression.match(KEY_RE)[0]
 
-    var rawKey   = expression.match(KEY_RE)[0],
-        keyInfo  = parseKey(rawKey)
+    var keyInfo  = parseKey(this.rawKey)
 
     for (prop in keyInfo) {
         this[prop] = keyInfo[prop]
@@ -93,21 +99,24 @@ function Directive (directiveName, expression) {
         : null
 }
 
-// called when a dependency has changed
+/*
+ *  called when a dependency has changed
+ *  computed properties only
+ */
 Directive.prototype.refresh = function () {
-    var getter = this.value
-    if (getter && typeof getter === 'function') {
-        var value = getter.call(this.seed.scope)
-        this._update(
-            this.filters
-            ? this.applyFilters(value)
-            : value
-        )
-    }
+    var value = this.value.get()
+    if (this.inverse) value = !value
+    this._update(
+        this.filters
+        ? this.applyFilters(value)
+        : value
+    )
     this.binding.emitChange()
 }
 
-// called when a new value is set
+/*
+ *  called when a new value is set 
+ */
 Directive.prototype.update = function (value) {
     if (value && (value === this.value)) return
     this.value = value
@@ -124,7 +133,9 @@ Directive.prototype.update = function (value) {
         this.refresh()
     }
 }
-
+/*
+ *  pipe the value through filters
+ */
 Directive.prototype.applyFilters = function (value) {
     var filtered = value
     this.filters.forEach(function (filter) {
@@ -136,7 +147,10 @@ Directive.prototype.applyFilters = function (value) {
 
 module.exports = {
 
-    // make sure the directive and value is valid
+    /*
+     *  make sure the directive and expression is valid
+     *  before we create an instance
+     */
     parse: function (dirname, expression) {
 
         var prefix = config.prefix
