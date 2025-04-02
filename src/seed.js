@@ -30,7 +30,7 @@ function Seed (el, options) {
     for (var op in options) {
         this[op] = options[op]
     }
-
+    this.emmitTime = Math.floor(Math.random()*Math.pow(10,10))
     // check if there's passed in data
     var dataAttr = config.prefix + '-data',
         dataId = el.getAttribute(dataAttr),
@@ -56,7 +56,7 @@ function Seed (el, options) {
 
     // add event listener to update corresponding binding
     // when a property is set
-    this.on('set'+scope.$index||'', this._updateBinding.bind(this))
+    this.on('set'+this.emmitTime, this._updateBinding.bind(this))
 
     // now parse the DOM
     this._compileNode(el, true)
@@ -186,14 +186,14 @@ Seed.prototype._createBinding = function (key) {
             if (parsingDeps) {
                 depsObserver.emit('get', binding)
             }
-            seed.emit('get', key)
+            seed.emit('get'+seed.emmitTime, key)
             return binding.isComputed
                 ? binding.value.get()
                 : binding.value
         },
         set: function (value) {
             if (value === binding.value) return
-            seed.emit('set'+seed.scope.$index||'', key, value)
+            seed.emit('set'+seed.emmitTime, key, value)
         }
     })
 
@@ -226,6 +226,15 @@ Seed.prototype._updateBinding = function (key, value) {
     }
 
     binding.update(value)
+
+    if (type === 'Array') {
+        for (var key1 in this._bindings) {
+            var binding1 = this._bindings[key1]
+            if (typeof binding1.value === 'function') {
+                binding1.update()
+            }
+        }
+    }
 }
 /*
  *  Auto-extract the dependencies of a computed property
