@@ -34,12 +34,12 @@ function Seed (el, options) {
     // check if there's passed in data
     var dataAttr = config.prefix + '-data',
         dataId = el.getAttribute(dataAttr),
-        data = (options && options.data) || config.datum[dataId]
+        data = (options && options.data) || config.datum[dataId] || {}
     el.removeAttribute(dataAttr)
     
     // if the passed in data is the scope of a Seed instance,
     // make a copy from it
-    if (data && data.$seed instanceof Seed) {
+    if (data.$seed instanceof Seed) {
         data = data.$dump()
     }
 
@@ -54,21 +54,12 @@ function Seed (el, options) {
     scope.$index   = options.index
     scope.$parent  = options.parentSeed && options.parentSeed.scope
 
-    // add event listener to update corresponding binding
-    // when a property is set
-    this.on('set'+this.emmitTime, this._updateBinding.bind(this))
-
-    // now parse the DOM
-    this._compileNode(el, true)
-
     // copy data
-    if (data) {
-        for (var key in data) {
-            scope[key] = data[key]
-        }
+    for (var key in data) {
+        scope[key] = data[key]
     }
 
-    // if has controller function, apply it
+    // if has controller function, apply it so we have all the user definitions
     var ctrlID = el.getAttribute(ctrlAttr)
     if (ctrlID) {
         el.removeAttribute(ctrlAttr)
@@ -79,9 +70,20 @@ function Seed (el, options) {
             console.warn('controller ' + ctrlID + ' is not defined.')
         }
     }
+
+    // add event listener to update corresponding binding
+    // when a property is set
+    var self = this
+    this.on('set'+this.emmitTime, function (key, value) {
+        self._bindings[key].update(value)
+    })
+
+    // now parse the DOM
+    this._compileNode(el, true)
+
     // extract dependencies for computed properties
     parsingDeps = true
-    this._computed.forEach(this._parseDeps.bind(this))
+    this._computed.forEach(parseDeps)
     delete this._computed
     parsingDeps = false
 }
@@ -147,10 +149,9 @@ Seed.prototype._compileTextNode = function (node) {
  *  Add a directive instance to the correct binding & scope
  */
 Seed.prototype._bind = function (directive) {
-    directive.seed = this
 
     var key = directive.key,
-        seed = this
+        seed = directive.seed = this
     
     if (this.each) {
         if (this.eachPrefixRE.test(key)) {
@@ -159,8 +160,8 @@ Seed.prototype._bind = function (directive) {
             seed = this.parentSeed
         }
     }
-    var ownerScope = determinScope(directive, seed),
-        binding = ownerScope._bindings[key] || ownerScope._createBinding(key)
+    seed = getScopeOwner(directive, seed)
+    var binding = seed._bindings[key] || seed._createBinding(key)
 
     // add directive to this binding
     binding.instances.push(directive)
@@ -170,6 +171,9 @@ Seed.prototype._bind = function (directive) {
     if (directive.bind) {
         directive.bind(binding.value)
     }
+
+    // set initial value
+    directive.update(binding.value)
 }
 /*
  *  Create binding and attach getter/setter for a key to the scope object
@@ -177,8 +181,9 @@ Seed.prototype._bind = function (directive) {
 Seed.prototype._createBinding = function (key) {
 
     var binding = new Binding()
-
+    binding.update(this.scope[key])
     this._bindings[key] = binding
+    if (binding.isComputed) this._computed.push(binding)
 
     var seed = this
     Object.defineProperty(this.scope, key, {
@@ -199,57 +204,7 @@ Seed.prototype._createBinding = function (key) {
 
     return binding
 }
-/*
- *  Update a binding with a new value.
- *  Triggered in the binding's setter.
- */
-Seed.prototype._updateBinding = function (key, value) {
 
-    var binding = this._bindings[key],
-        type = binding.type = typeOf(value)
-    if (!binding) {
-        return
-    }
-    // preprocess the value depending on its type
-    if (type === 'Object') {
-        if (value.get) { // computed property
-            this._computed.push(binding)
-            binding.isComputed = true
-        } else { // normal object
-            // TODO watchObject
-        }
-    } else if (type === 'Array') {
-        watchArray(value)
-        value.on('mutate', function () {
-            binding.emitChange()
-        })
-    }
-
-    binding.update(value)
-
-    if (type === 'Array') {
-        for (var key1 in this._bindings) {
-            var binding1 = this._bindings[key1]
-            if (typeof binding1.value === 'function') {
-                binding1.update()
-            }
-        }
-    }
-}
-/*
- *  Auto-extract the dependencies of a computed property
- *  by recording the getters triggered when evaluating it
- */
-Seed.prototype._parseDeps = function (binding) {
-    depsObserver.on('get', function (dep) {
-        if (!dep.dependents) {
-            dep.dependents = []
-        }
-        dep.dependents.push.apply(dep.dependents, binding.instances)
-    })
-    binding.value.get()
-    depsObserver.off('get')
-}
 /*
  *  Call unbind() of all directive instances
  *  to remove event listeners, destroy child seeds, etc.
@@ -300,18 +255,29 @@ Seed.prototype._dump = function () {
 /*
  *  Binding class
  */
-function Binding() {
-    this.value = undefined
+function Binding(value) {
+    this.value = value
     this.instances = []
     this.dependents = []
 }
 
 Binding.prototype.update = function (value) {
-    if (value === undefined) {
-       value = this.value
-   } else {
-       this.value = value
-   }
+    var type = typeOf(value),
+        self = this
+    // preprocess the value depending on its type
+    if (type === 'Object') {
+        if (value.get) { // computed property
+            this.isComputed = true
+        } else { // normal object
+            // TODO watchObject
+        }
+    } else if (type === 'Array') {
+        watchArray(value)
+        value.on('mutate', function () {
+            self.emitChange()
+        })
+    }
+    this.value = value
     this.instances.forEach(function (instance) {
         instance.update(value)
     })
@@ -327,9 +293,24 @@ Binding.prototype.emitChange = function () {
 // Helpers --------------------------------------------------------------------
 
 /*
+ *  Auto-extract the dependencies of a computed property
+ *  by recording the getters triggered when evaluating it
+ */
+function parseDeps (binding) {
+    depsObserver.on('get', function (dep) {
+        if (!dep.dependents) {
+            dep.dependents = []
+        }
+        dep.dependents.push.apply(dep.dependents, binding.instances)
+    })
+    binding.value.get()
+    depsObserver.off('get')
+}
+
+/*
  *  determine which scope a key belongs to based on nesting symbols
  */
-function determinScope (key, seed) {
+function getScopeOwner (key, seed) {
     if (key.nesting) {
         var levels = key.nesting
         while (seed.parentSeed && levels--) {
