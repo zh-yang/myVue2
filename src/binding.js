@@ -64,7 +64,7 @@ function typeOf (obj) {
  *  augment an Array so that it emit events when mutated
  */
 var aproto = Array.prototype,
-    arrayMutators = ['push','pop','shift','unshift','splice','sort','reverse']
+    arrayMutators = ['push','pop','shift','unshift','splice','sort','reverse'],
     arrayAugmentations = {
         remove: function (scope) {
             this.splice(scope.$index, 1)

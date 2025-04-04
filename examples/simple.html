@@ -7,10 +7,21 @@
     </head>
     <body sd-controller="hello">
         <span sd-text="hello"></span>
+        <div sd-text="num"></div>
+        <button sd-on="click:up">增加1</button>
+        <button sd-on="click:down">减少1</button>
+        <div sd-if="num">num>0显示</div>
         <script>
             var Seed = require('vue')
             Seed.controller('hello', function (scope) {
                 scope.hello = 'Hello World!'
+                scope.num = 0
+                scope.up = function() {
+                    scope.num++;
+                }
+                scope.down = function() {
+                    scope.num--;
+                }
             })
             Seed.bootstrap()
         </script>
