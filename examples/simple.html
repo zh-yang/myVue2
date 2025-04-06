@@ -6,7 +6,7 @@
         <script src="../dist/vue.js"></script>
     </head>
     <body sd-controller="hello">
-        <span sd-text="hello"></span>
+        <span sd-text="hello" sd-style="text-transform:format"></span>
         <div sd-text="num"></div>
         <button sd-on="click:up">增加1</button>
         <button sd-on="click:down">减少1</button>
@@ -15,6 +15,7 @@
             var Seed = require('vue')
             Seed.controller('hello', function (scope) {
                 scope.hello = 'Hello World!'
+                scope.format = 'uppercase'
                 scope.num = 0
                 scope.up = function() {
                     scope.num++;
