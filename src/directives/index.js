@@ -14,10 +14,20 @@ module.exports = {
     on   : require('./on'),
     each : require('./each'),
 
+    attr: function (value) {
+        this.el.setAttribute(this.arg, value)
+    },
+
     text: function (value) {
         this.el.textContent =
-            (value !== null && value !== undefined)
-            ? value.toString() : ''
+            (typeof value === 'string' || typeof value === 'number')
+            ? value : ''
+    },
+
+    html: function (value) {
+        this.el.innerHTML =
+            (typeof value === 'string' || typeof value === 'number')
+            ? value : ''
     },
 
     show: function (value) {
