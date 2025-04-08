@@ -4,7 +4,7 @@ var todos = [
     { text: 'make nesting controllers work', done: true },
     { text: 'complete ArrayWatcher', done: true },
     { text: 'computed properties', done: true },
-    { text: 'parse textnodes', done: false }
+    { text: 'parse textnodes', done: true }
 ]
 
 Seed.controller('Todos', function (scope) {
@@ -15,7 +15,6 @@ Seed.controller('Todos', function (scope) {
     scope.remaining = todos.reduce(function (count, todo) {
         return count + (todo.done ? 0 : 1)
     }, 0)
-    scope.allDone = scope.remaining === 0
 
     // computed properties ----------------------------------------------------
     scope.total = {
@@ -36,6 +35,10 @@ Seed.controller('Todos', function (scope) {
         }
     }
 
+    scope.allDone = {get: function () {
+        return scope.remaining === 0
+    }}
+
     // event handlers ---------------------------------------------------------
     scope.addTodo = function (e) {
         var val = e.el.value
@@ -53,7 +56,6 @@ Seed.controller('Todos', function (scope) {
 
     scope.updateCount = function (e) {
         scope.remaining += e.scope.done ? -1 : 1
-        scope.allDone = scope.remaining === 0
     }
 
     scope.edit = function (e) {

@@ -93,6 +93,12 @@ new Seed(rootEl)
 
 WIP, playing with data binding
 
+- DOM based templates with precise and efficient manipulation
+- Keep logic expressions outside of the templates.
+- POJSO (plain old javascript objects) FTW.
+- Auto dependency extraction for computed properties.
+- Auto event delegation on repeated items.
+
 ### Template
 
 ### Controller

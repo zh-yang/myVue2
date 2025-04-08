@@ -7,14 +7,15 @@ var KEY_RE          = /^[^\|<]+/,
     FILTERS_RE      = /\|[^\|<]+/g,
     FILTER_TOKEN_RE = /[^\s']+|'[^']+'/g,
     INVERSE_RE      = /^!/,
-    NESTING_RE      = /^\^+/
+    NESTING_RE      = /^\^+/,
+    ONEWAY_RE       = /-oneway$/
 
 
 /*
  *  Directive class
  *  represents a single directive instance in the DOM
  */
-function Directive (directiveName, expression) {
+function Directive (directiveName, expression, oneway) {
 
     var prop, directive = directives[directiveName]
     if (typeof directive === 'function') {
@@ -29,6 +30,7 @@ function Directive (directiveName, expression) {
         }
     }
 
+    this.oneway        = !!oneway
     this.directiveName = directiveName
     this.expression    = expression.trim()
     this.rawKey        = expression.match(KEY_RE)[0]
@@ -157,6 +159,11 @@ module.exports = {
         if (dirname.indexOf(prefix) === -1) return null
         dirname = dirname.slice(prefix.length + 1)
 
+        var oneway = ONEWAY_RE.test(dirname)
+        if (oneway) {
+            dirname = dirname.slice(0, -7)
+        }
+
         var dir   = directives[dirname],
             valid = KEY_RE.test(expression)
 
@@ -164,7 +171,7 @@ module.exports = {
         if (!valid) console.warn('invalid directive expression: ' + expression)
 
         return dir && valid
-            ? new Directive(dirname, expression)
+            ? new Directive(dirname, expression, oneway)
             : null
     }
 }
