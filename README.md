@@ -91,7 +91,7 @@ new Seed(rootEl)
 }
 ```
 
-# Seed
+# Seed (WIP)
 ## a mini MVVM framework
 
 - 5kb gzipped!

@@ -18,6 +18,7 @@
         </header>
 
         <section id="main" sd-show="total">
+            <!-- toggle all checkbox-->
             <input id="toggle-all" type="checkbox" sd-checked-oneway="allDone" sd-on="change:toggleAll">
             <ul id="todo-list">
                 <!-- a single todo item -->
@@ -36,7 +37,7 @@
         <!-- footer controls -->
         <footer id="footer" sd-show="total">
             <span id="todo-count">
-                <strong sd-text="remaining"></strong>
+                <strong>{{remaining}}</strong>
                 <span sd-text="itemLabel"></span>
                 left
             </span>
