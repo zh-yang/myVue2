@@ -3,11 +3,14 @@
     <head>
         <title>Simple Example</title>
         <meta charset="utf-8">
+        <style type="text/css">
+            .red { color: red; }
+        </style>
         <script src="../dist/vue.js"></script>
     </head>
     <body sd-controller="hello">
-        <input type="checkbox" sd-checked="ok" checked>
-        <span sd-text="hello" sd-style="text-transform:format" sd-if="ok"></span>
+        <input type="checkbox" sd-checked="checked">
+        <span sd-text="hello" sd-text="hello | uppercase" sd-class="red:checked"></span>
         <div sd-text="num"></div>
         <button sd-on="click:up">增加1</button>
         <button sd-on="click:down">减少1</button>
@@ -15,8 +18,9 @@
         <script>
             var Seed = require('vue')
             Seed.controller('hello', function (scope) {
-                scope.hello = 'Hello World!'
-                scope.format = 'uppercase'
+                scope.hello = {get:function () {
+                    return scope.checked ? 'red!!!' : 'hello seed'
+                }}
                 scope.num = 0
                 scope.up = function() {
                     scope.num++;
