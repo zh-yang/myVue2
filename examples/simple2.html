@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Simple Example</title>
+        <meta charset="utf-8">
+        <script src="../dist/vue.js"></script>
+    </head>
+    <body sd-controller="hello">
+        <button sd-on="click:change">change</button>
+        <span sd-text="hello"></span>
+        <script>
+            var Seed = require('vue')
+            Seed.controller('hello', function (scope) {
+                scope.hello = {
+                    get: function() {
+                        return scope.msg + scope.name
+                    }
+                }
+                scope.msg = 'hello, '
+                scope.name = 'Jim'
+                scope.change = function() {
+                    scope.name = 'King'
+                }
+            })
+            Seed.bootstrap()
+        </script>
+    </body>
+</html>
