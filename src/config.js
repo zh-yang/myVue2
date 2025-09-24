@@ -1,9 +1,10 @@
 module.exports = {
-    prefix: 'sd',
-    interpolateTags: {
-        open: '{{',
-        close: '}}'
-    },
-    controllers: {},
-    datum: {},
+    prefix      : 'sd',
+    datum       : {},
+    controllers : {},
+
+    interpolateTags : {
+        open  : '{{',
+        close : '}}'
+    }
 }
