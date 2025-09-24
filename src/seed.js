@@ -1,15 +1,12 @@
-var Emitter        = require('./Emitter'),
-    config         = require('./config'),
+var config         = require('./config'),
     Binding        = require('./binding'),
     Directive      = require('./directive'),
-    TextParser = require('./text-parser');
+    TextParser = require('./text-parser'),
+    depsParser = require('./deps-parser');
 
 var slice = Array.prototype.slice,
     ctrlAttr = config.prefix + '-controller',
     eachAttr = config.prefix + '-each'
-
-var depsObserver    = new Emitter(),
-    parsingDeps     = false
 
 /*
  *  The main ViewModel class
@@ -50,8 +47,6 @@ function Seed (el, options) {
     scope.$seed    = this
     scope.$destroy = this._destroy.bind(this)
     scope.$dump    = this._dump.bind(this)
-    scope.$on       = this.on.bind(this)
-    scope.$emit     = this.emit.bind(this)
     scope.$index   = options.index
     scope.$parent  = options.parentSeed && options.parentSeed.scope
 
@@ -72,27 +67,12 @@ function Seed (el, options) {
         }
     }
 
-    // add event listener to update corresponding binding
-    // when a property is set
-    var self = this
-    this.on('get', function (key) {
-        if (parsingDeps) {
-            depsObserver.emit('get', self._bindings[key])
-        }
-    })
-    this.on('set', function (key, value) {
-        self._bindings[key].update(value)
-    })
-
     // now parse the DOM
     this._compileNode(el, true)
 
     // extract dependencies for computed properties
-    parsingDeps = true
-    this._computed.forEach(parseDeps)
-    this._computed.forEach(injectDeps)
+    depsParser.parse(this._computed)
     delete this._computed
-    parsingDeps = false
 }
 /*
  *  Compile a DOM node (recursive)
@@ -263,34 +243,6 @@ Seed.prototype._dump = function () {
 // Helpers --------------------------------------------------------------------
 
 /*
- *  Auto-extract the dependencies of a computed property
- *  by recording the getters triggered when evaluating it.
- *
- *  However, the first pass will contain duplicate dependencies
- *  for computed properties. It is therefore necessary to do a
- *  second pass in injectDeps()
- */
-function parseDeps (binding) {
-    depsObserver.on('get', function (dep) {
-        binding.dependencies.push(dep)
-    })
-    binding.value.get()
-    depsObserver.off('get')
-}
-
-/*
- *  The second pass of dependency extraction.
- *  Only include dependencies that don't have dependencies themselves.
- */
-function injectDeps (binding) {
-    binding.dependencies.forEach(function (dep) {
-        if (!dep.dependencies || !dep.dependencies.length) {
-            dep.dependents.push.apply(dep.dependents, binding.instances)
-        }
-    })
-}
-
-/*
  *  determine which scope a key belongs to based on nesting symbols
  */
 function getScopeOwner (key, seed) {
@@ -306,7 +258,5 @@ function getScopeOwner (key, seed) {
     }
     return seed
 }
-
-Emitter(Seed.prototype)
 
 module.exports = Seed
