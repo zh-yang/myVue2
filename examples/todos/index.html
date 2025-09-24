@@ -19,7 +19,7 @@
 
         <section id="main" sd-show="total">
             <!-- toggle all checkbox-->
-            <input id="toggle-all" type="checkbox" sd-checked-oneway="allDone" sd-on="change:toggleAll">
+            <input id="toggle-all" type="checkbox" sd-checked="allDone">
             <ul id="todo-list">
                 <!-- a single todo item -->
                 <li sd-each="todo:todos" sd-class="completed:todo.done, editing:todo.editing">
