@@ -7,7 +7,8 @@ var config     = require('./config'),
 var controllers = config.controllers,
     datum       = config.datum,
     api         = {},
-    reserved    = ['datum', 'controllers']
+    reserved    = ['datum', 'controllers'],
+    booted      = false
 
 /*
  *  Store a piece of plain data in config.datum
@@ -15,9 +16,6 @@ var controllers = config.controllers,
  */
 api.data = function (id, data) {
     if (!data) return datum[id]
-    if (datum[id]) {
-        console.warn('data object "' + id + '"" already exists and has been overwritten.')
-    }
     datum[id] = data
 }
 /*
@@ -26,9 +24,6 @@ api.data = function (id, data) {
  */
 api.controller = function (id, extensions) {
     if (!extensions) return controllers[id]
-    if (controllers[id]) {
-        console.warn('controller "' + id + '" already exists and has been overwritten.')
-    }
     controllers[id] = extensions
 }
 /*
@@ -51,6 +46,7 @@ api.filter = function (name, fn) {
  *  that has either sd-controller or sd-data
  */
 api.bootstrap = function (opts) {
+    if (booted) return
     if (opts) {
         config.prefix = opts.prefix || config.prefix
         for (var key in opts) {
@@ -63,11 +59,12 @@ api.bootstrap = function (opts) {
     var el,
         ctrlSlt = '[' + config.prefix + '-controller]',
         dataSlt = '[' + config.prefix + '-data]',
-        seeds = []
+        seeds   = []
     /* jshint boss: true */
     while (el = document.querySelector(ctrlSlt) || document.querySelector(dataSlt)) {
-        seeds.push(new Seed(el))
+        seeds.push((new Seed(el)).scope)
     }
+    booted = true
     return seeds.length > 1 ? seeds : seeds[0]
 }
 

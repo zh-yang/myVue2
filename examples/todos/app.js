@@ -49,7 +49,7 @@ Seed.controller('Todos', function (scope) {
     // event handlers ---------------------------------------------------------
     scope.addTodo = function (e) {
         if (e.el.value) {
-            scope.todos.unshift({ text: e.el.value })
+            scope.todos.unshift({ text: e.el.value, done: false })
             e.el.value = ''
             scope.remaining++
         }
@@ -85,4 +85,4 @@ Seed.controller('Todos', function (scope) {
 
 })
 
-Seed.bootstrap()
+Seed.bootstrap({ debug: true })
