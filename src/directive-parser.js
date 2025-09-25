@@ -57,7 +57,7 @@ Directive.prototype.refresh = function () {
         ? this.applyFilters(value)
         : value
     )
-    this.binding.emitChange()
+    this.binding.pub()
 }
 
 /*

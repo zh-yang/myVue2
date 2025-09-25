@@ -86,6 +86,7 @@ Seed.prototype._compileNode = function (node, root) {
     } else if (node.nodeType === 1) { // exclude comment nodes
         var eachExp = node.getAttribute(eachAttr),
             ctrlExp = node.getAttribute(ctrlAttr)
+        // deal with each block
         if (eachExp) {
             // each block
             var directive = DirectiveParser.parse(eachAttr, eachExp)
@@ -166,7 +167,8 @@ Seed.prototype._bind = function (directive) {
             seed = this.parentSeed
         }
     }
-    seed = getScopeOwner(directive, seed)
+    // deal with nesting
+    seed = trace(directive, seed)
     var binding = seed._bindings[key] || seed._createBinding(key)
 
     // add directive to this binding
@@ -245,7 +247,7 @@ Seed.prototype._dump = function () {
 /*
  *  determine which scope a key belongs to based on nesting symbols
  */
-function getScopeOwner (key, seed) {
+function trace (key, seed) {
     if (key.nesting) {
         var levels = key.nesting
         while (seed.parentSeed && levels--) {
