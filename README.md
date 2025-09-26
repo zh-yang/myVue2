@@ -101,8 +101,6 @@ new Seed(rootEl)
 - Auto event delegation on repeated items.
 - [Component](https://github.com/component/component) based, can be used as a CommonJS module but can also be used alone.
 
-[Doc under construction...]
-
 ### Browser Support
 
 - Chrome 8+
@@ -114,21 +112,25 @@ new Seed(rootEl)
 - iOS Safari 5.0+
 
 
-### Template
+### [Doc under construction...]
 
-### Controller
+#### Template
+
+#### Controller
 
 - Nested Controllers and accessing parent scope
 - Controller inheritance
 
-### Data
+#### Data
 
-### Data Binding
+#### Data Binding
 
-### Filters
+#### Event Handling
 
-### Computed Properties
+#### Filters
 
-### Custom Filter
+#### Computed Properties
 
-### Custom Directive
+#### Custom Filter
+
+#### Custom Directive

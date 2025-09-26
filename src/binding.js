@@ -15,9 +15,9 @@ function Binding (seed, key) {
     var path = key.split('.')
     this.set(getNestedValue(seed.scope, path))
     this.def(seed.scope, path)
-    this.instances    = []
-    this.subs   = []
-    this.deps = []
+    this.instances = []
+    this.subs      = []
+    this.deps      = []
 }
 
 /*
