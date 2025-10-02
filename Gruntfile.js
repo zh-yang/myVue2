@@ -25,7 +25,7 @@ module.exports = function (grunt) {
         watch: {
             component: {
                 files: ['src/**/*.js', 'component.json'],
-                tasks: ['jshint', 'component_build']
+                tasks: ['jshint', 'component_build', 'concat:dev']
             }
         }
     });
@@ -36,5 +36,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks( 'grunt-contrib-jshint' )
 
     // 注册默认任务
-    grunt.registerTask('default', ['jshint', 'component_build', 'watch']);
+    grunt.registerTask('default', ['jshint', 'component_build', 'concat:dev', 'watch']);
+    grunt.registerTask( 'concat', function (version) {
+        var fs = require('fs'),
+            intro = fs.readFileSync('wrappers/intro.js'),
+            outro = fs.readFileSync('wrappers/outro.js', 'utf-8'),
+            main  = fs.readFileSync('dist/vue.js')
+        outro = new Buffer(outro.replace('{{version}}', "'" + version + "'"))
+        var all   = Buffer.concat([intro, main, outro])
+        fs.writeFileSync('dist/vue.js', all)
+    })
 };
