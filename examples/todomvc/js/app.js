@@ -4,11 +4,11 @@ var storageKey = 'todos-seedjs',
 Seed.controller('Todos', function (scope) {
 
     // regular properties -----------------------------------------------------
-    scope.todos = Array.isArray(storedData) ? storedData : []
-    scope.remaining = scope.todos.reduce(function (n, todo) {
-        return n + (todo.done ? 0 : 1)
-    }, 0)
+    scope.todos  = Array.isArray(storedData) ? storedData : []
     scope.filter = location.hash.slice(2) || 'all'
+    scope.remaining = scope.todos.reduce(function (n, todo) {
+        return n + (todo.completed ? 0 : 1)
+    }, 0)
 
     // computed properties ----------------------------------------------------
     scope.total = {
@@ -35,7 +35,7 @@ Seed.controller('Todos', function (scope) {
         },
         set: function (value) {
             scope.todos.forEach(function (todo) {
-                todo.done = value
+                todo.completed = value
             })
             scope.remaining = value ? 0 : scope.total
         }
@@ -44,7 +44,7 @@ Seed.controller('Todos', function (scope) {
     // event handlers ---------------------------------------------------------
     scope.addTodo = function (e) {
         if (e.el.value) {
-            scope.todos.unshift({ text: e.el.value, done: false })
+            scope.todos.unshift({ title: e.el.value, completed: false })
             e.el.value = ''
             scope.remaining++
         }
@@ -52,11 +52,11 @@ Seed.controller('Todos', function (scope) {
 
     scope.removeTodo = function (e) {
         scope.todos.remove(e.scope)
-        scope.remaining -= e.scope.done ? 0 : 1
+        scope.remaining -= e.scope.completed ? 0 : 1
     }
 
     scope.updateCount = function (e) {
-        scope.remaining += e.scope.done ? -1 : 1
+        scope.remaining += e.scope.completed ? -1 : 1
     }
 
     scope.edit = function (e) {
@@ -70,7 +70,7 @@ Seed.controller('Todos', function (scope) {
     scope.removeCompleted = function () {
         if (scope.completed === 0) return
         scope.todos = scope.todos.filter(function (todo) {
-            return !todo.done
+            return !todo.completed
         })
     }
 
@@ -79,13 +79,9 @@ Seed.controller('Todos', function (scope) {
         scope.filter = location.hash.slice(2)
     })
 
-    // save on leave
+    // persist data on leave
     window.addEventListener('beforeunload', function () {
         localStorage.setItem(storageKey, scope.$serialize('todos'))
-    })
-
-    scope.$watch('completed', function (value) {
-        scope.$unwatch('completed')
     })
 })
 

@@ -22,10 +22,10 @@
             <input id="toggle-all" type="checkbox" sd-checked="allDone">
             <ul id="todo-list">
                 <!-- a single todo item -->
-                <li class="todo" sd-each="todo:todos" sd-class="completed:todo.done, editing:todo.editing">
+                <li class="todo" sd-each="todo:todos" sd-class="completed:todo.completed, editing:todo.editing">
                     <div class="view">
-                        <input class="toggle" type="checkbox" sd-checked="todo.done" sd-on="change:updateCount">
-                        <label sd-text="todo.text" sd-on="dblclick:edit"></label>
+                        <input class="toggle" type="checkbox" sd-checked="todo.completed" sd-on="change:updateCount">
+                        <label sd-text="todo.title" sd-on="dblclick:edit"></label>
                         <button class="destroy" sd-on="click:removeTodo"></button>
                     </div>
                     <input class="edit" type="text" sd-focus="todo.editing"
@@ -37,7 +37,7 @@
         <!-- footer controls -->
         <footer id="footer" sd-show="total">
             <span id="todo-count">
-                <strong>{{remaining}}</strong>
+                <strong sd-text="remaining"></strong>
                 <span sd-text="itemLabel"></span>
                 left
             </span>
@@ -46,7 +46,7 @@
                 <li><a href="#/active">Active</a></li>
                 <li><a href="#/completed">Completed</a></li>
             </ul>
-            <button id="clear-completed" sd-on="click:removeCompleted">
+            <button id="clear-completed" sd-on="click:removeCompleted" sd-show="completed">
                 Remove Completed (<span sd-text="completed"></span>)
             </button>
         </footer>
