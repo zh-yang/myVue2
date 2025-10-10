@@ -36,9 +36,7 @@
         </section>
         <footer id="footer" sd-show="total">
             <span id="todo-count">
-                <strong sd-text="remaining"></strong>
-                <span sd-text="itemLabel"></span>
-                left
+                <strong sd-text="remaining"></strong> {{remaining | pluralize item}} left
             </span>
             <ul id="filters">
                 <li><a href="#/all" sd-class="selected:checkFilter">All</a></li>
