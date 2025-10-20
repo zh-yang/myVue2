@@ -4,8 +4,7 @@ var mutationHandlers = {
     push: function (m) {
         var self = this
         m.args.forEach(function (data, i) {
-            var seed = self.buildItem(data, self.collection.length + i)
-            self.container.insertBefore(seed.el, self.ref)
+            self.buildItem(self.ref, data, self.collection.length + i)
         })
     },
     pop: function (m) {
@@ -14,11 +13,10 @@ var mutationHandlers = {
     unshift: function (m) {
         var self = this
         m.args.forEach(function (data, i) {
-            var seed = self.buildItem(data, i),
-                ref  = self.collection.length > m.args.length
+            var ref  = self.collection.length > m.args.length
                      ? self.collection[m.args.length].$el
-                     : self.marker
-            self.container.insertBefore(seed.el, ref)
+                     : self.ref
+            self.buildItem(ref, data, i)
         })
         self.updateIndexes()
     },
@@ -37,12 +35,11 @@ var mutationHandlers = {
         })
         if (added > 0) {
             m.args.slice(2).forEach(function (data, i) {
-                var seed  = self.buildItem(data, index + i),
-                    pos   = index - removed + added + 1,
-                    ref   = self.collection[pos]
-                          ? self.collection[pos].$el
-                          : self.ref
-                self.container.insertBefore(seed.el, ref)
+                var pos  = index - removed + added + 1,
+                    ref  = self.collection[pos]
+                         ? self.collection[pos].$el
+                         : self.ref
+                self.buildItem(ref, index + i)
             })
         }
         if (removed !== added) {
@@ -85,15 +82,15 @@ module.exports = {
         })
         // create child-seeds and append to DOM
         collection.forEach(function (data, i) {
-            var seed = self.buildItem(data, i)
-            self.container.insertBefore(seed.el, self.ref)
+            self.buildItem(self.ref, data, i)
         })
     },
 
-    buildItem: function (data, index) {
+    buildItem: function (ref, data, index) {
+        var node = this.el.cloneNode(true)
+        this.container.insertBefore(node, ref)
         var Seed = require('../seed'),
-            node = this.el.cloneNode(true)
-        var spore = new Seed(node, {
+            spore = new Seed(node, {
                 each: true,
                 eachPrefix: this.arg + '.',
                 parentSeed: this.seed,
@@ -102,7 +99,6 @@ module.exports = {
                 delegator: this.container
             })
         this.collection[index] = spore.scope
-        return spore
     },
 
     updateIndexes: function () {

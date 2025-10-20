@@ -28,7 +28,10 @@ module.exports = {
     },
 
     focus: function (value) {
-        this.el[value ? 'focus' : 'blur']()
+        var el = this.el
+        setTimeout(function () {
+            el[value ? 'focus' : 'blur']()
+        }, 0)
     },
 
     class: function (value) {
@@ -51,7 +54,7 @@ module.exports = {
             el.addEventListener('change', this.change)
         },
         update: function (value) {
-            this.el.checked = !!value
+            this.el.value = value ? value : ''
         },
         unbind: function () {
             if (this.oneway) return

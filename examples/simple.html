@@ -6,7 +6,7 @@
         <style type="text/css">
             .red { color: red; }
         </style>
-        <script src="../dist/vue.js"></script>
+        <script src="../dist/vue.min.js"></script>
     </head>
     <body sd-controller="hello">
         <input type="checkbox" sd-checked="checked">
@@ -16,7 +16,6 @@
         <button sd-on="click:down">减少1</button>
         <div sd-if="num">num>0显示</div>
         <script>
-            var Seed = require('vue')
             Seed.controller('hello', function (scope) {
                 scope.hello = {get:function () {
                     return scope.checked ? 'red!!!' : 'hello seed'

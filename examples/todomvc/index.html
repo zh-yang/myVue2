@@ -4,17 +4,22 @@
 <head>
     <title>Todo</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="todomvc.css">
-    <link rel="stylesheet" type="text/css" href="custom.css">
+    <link rel="stylesheet" type="text/css" href="common/base.css">
 </head>
 
 <body>
-    <section id="todoapp" sd-controller="Todos" sd-class="filter">
+    <section id="todoapp" sd-controller="Todos">
 
         <header id="header">
             <h1>todos</h1>
             <!-- main input box -->
-            <input id="new-todo" autofocus sd-on="keyup:addTodo | key enter" placeholder="What needs to be done?">
+            <input id="new-todo"
+                autofocus
+                autocomplete="off"
+                placeholder="What needs to be done?"
+                sd-value="newTodo"
+                sd-on="keyup:addTodo | key enter"
+            >
         </header>
 
         <section id="main" sd-show="total">
@@ -22,14 +27,15 @@
             <input id="toggle-all" type="checkbox" sd-checked="allDone">
             <ul id="todo-list">
                 <!-- a single todo item -->
-                <li sd-each="todo:todos" sd-class="completed:todo.done, editing:todo.editing">
+                <li class="todo" sd-each="todo:todos" sd-show="filterTodo" sd-class="completed:todo.completed, editing:todo.editing">
                     <div class="view">
-                        <input class="toggle" type="checkbox" sd-checked="todo.done" sd-on="change:updateCount">
-                        <label sd-text="todo.text" sd-on="dblclick:edit"></label>
+                        <input class="toggle" type="checkbox" sd-checked="todo.completed" sd-on="change:updateCount">
+                        <label sd-text="todo.title" sd-on="dblclick:edit"></label>
                         <button class="destroy" sd-on="click:removeTodo"></button>
                     </div>
                     <input class="edit" type="text" sd-focus="todo.editing"
-                        sd-on="blur:stopEdit, keyup:stopEdit | key enter" sd-value="todo.text">
+                        sd-on="blur:doneEdit, keyup:doneEdit | key enter, keyup:cancelEdit | key esc"
+                        sd-value="todo.title">
                 </li>
             </ul>
         </section>
@@ -37,16 +43,16 @@
         <!-- footer controls -->
         <footer id="footer" sd-show="total">
             <span id="todo-count">
-                <strong>{{remaining}}</strong>
+                <strong sd-text="remaining"></strong>
                 <span sd-text="itemLabel"></span>
                 left
             </span>
             <ul id="filters">
-                <li><a href="#/all" data-filter="all" sd-on="click:setFilter">All</a></li>
-                <li><a href="#/active" data-filter="active" sd-on="click:setFilter">Active</a></li>
-                <li><a href="#/completed" data-filter="completed" sd-on="click:setFilter">Completed</a></li>
+                <li><a href="#/all" sd-class="selected:checkFilter">All</a></li>
+                <li><a href="#/active" sd-class="selected:checkFilter">Active</a></li>
+                <li><a href="#/completed" sd-class="selected:checkFilter">Completed</a></li>
             </ul>
-            <button id="clear-completed" sd-on="click:removeCompleted">
+            <button id="clear-completed" sd-on="click:removeCompleted" sd-show="completed">
                 Remove Completed (<span sd-text="completed"></span>)
             </button>
         </footer>
@@ -62,7 +68,7 @@
 
     <!-- js -->
     <script src="../../dist/vue.js"></script>
-    <script src="app.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>

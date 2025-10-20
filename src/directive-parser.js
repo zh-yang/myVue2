@@ -45,44 +45,52 @@ function Directive (directiveName, expression, oneway) {
         : null
 }
 
+var DirProto = Directive.prototype
+
+/*
+ *  called when a new value is set 
+ *  for computed properties, this will only be called once
+ *  during initialization.
+ */
+DirProto.update = function (value) {
+    if (value && (value === this.value)) return
+    this.value = value
+    this.apply(value)
+}
+
 /*
  *  called when a dependency has changed
  *  computed properties only
  */
-Directive.prototype.refresh = function () {
-    var value = this.value.get()
+DirProto.refresh = function () {
+    // pass element and scope info to the getter
+    // enables powerful context-aware bindings
+    var value = this.value.get({
+        el: this.el,
+        scope: this.seed.scope
+    })
+    if (value === this.computedValue) return
+    this.computedValue = value
+    this.apply(value)
+    this.binding.pub()
+}
+
+/*
+ *  Actually invoking the _update from the directive's definition
+ */
+DirProto.apply = function (value) {
     if (this.inverse) value = !value
     this._update(
         this.filters
         ? this.applyFilters(value)
         : value
     )
-    this.binding.pub()
 }
 
 /*
- *  called when a new value is set 
- */
-Directive.prototype.update = function (value) {
-    if (value && (value === this.value)) return
-    this.value = value
-    // computed property
-    if (typeof value === 'function' && !this.expectFunction) {
-        value = value()
-    }
-    this._update(
-        this.filters
-        ? this.applyFilters(value)
-        : value
-    )
-    if (this.binding.isComputed) {
-        this.refresh()
-    }
-}
-/*
  *  pipe the value through filters
  */
-Directive.prototype.applyFilters = function (value) {
+DirProto.applyFilters = function (value) {
     var filtered = value
     this.filters.forEach(function (filter) {
         if (!filter.apply) throw new Error('Unknown filter: ' + filter.name)
@@ -93,7 +101,7 @@ Directive.prototype.applyFilters = function (value) {
 /*
  *  parse a key, extract argument and nesting/root info
  */
-Directive.prototype.parseKey = function (rawKey) {
+DirProto.parseKey = function (rawKey) {
 
     var argMatch = rawKey.match(ARG_RE)
 
@@ -164,10 +172,8 @@ module.exports = {
         var dir   = directives[dirname],
             valid = KEY_RE.test(expression)
 
-        if (config.debug) {
-            if (!dir) console.warn('unknown directive: ' + dirname)
-            if (!valid) console.warn('invalid directive expression: ' + expression)
-        }
+        if (!dir) config.warn('unknown directive: ' + dirname)
+        if (!valid) config.warn('invalid directive expression: ' + expression)
 
         return dir && valid
             ? new Directive(dirname, expression, oneway)
