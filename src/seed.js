@@ -21,10 +21,13 @@ function Seed (el, options) {
         el = document.querySelector(el)
     }
 
-    this.el         = el
-    el.seed         = this
-    this._bindings  = {}
-    this._computed  = []
+    this.el               = el
+    el.seed               = this
+    this._bindings        = {}
+    // list of computed properties that need to parse dependencies for
+    this._computed        = []
+    // list of bindings that has dynamic context dependencies
+    this._contextBindings = []
 
     // copy options
     options = options || {}
@@ -82,6 +85,9 @@ function Seed (el, options) {
     // extract dependencies for computed properties
     if (this._computed.length) depsParser.parse(this._computed)
     delete this._computed
+
+    if (this._contextBindings.length) this._bindContexts(this._contextBindings)
+    delete this._contextBindings
 }
 
 // for better compression
@@ -98,11 +104,12 @@ SeedProto._compileNode = function (node, root) {
         seed._compileTextNode(node)
     } else if (node.nodeType === 1) { // exclude comment nodes
         var eachExp = node.getAttribute(eachAttr),
-            ctrlExp = node.getAttribute(ctrlAttr)
+            ctrlExp = node.getAttribute(ctrlAttr),
+            directive
         // deal with each block
         if (eachExp) {
             // each block
-            var directive = DirectiveParser.parse(eachAttr, eachExp)
+            directive = DirectiveParser.parse(eachAttr, eachExp)
             if (directive) {
                 directive.el = node
                 seed._bind(directive)
@@ -117,21 +124,25 @@ SeedProto._compileNode = function (node, root) {
         }  else { // normal node
             // parse if has attributes
             if (node.attributes && node.attributes.length) {
-                // forEach vs for loop perf comparison: http://jsperf.com/for-vs-foreach-case
-                // takeaway: not worth it to wrtie manual loops.
-                slice.call(node.attributes).forEach(function (attr) {
-                    if (attr.name === ctrlAttr) return
-                    var valid = false
-                    attr.value.split(',').forEach(function (exp) {
-                        var directive = DirectiveParser.parse(attr.name, exp)
+                var attrs = slice.call(node.attributes),
+                    i = attrs.length, attr, j, valid, exps, exp
+                while (i--) {
+                    attr = attrs[i]
+                    if (attr.name === ctrlAttr) continue
+                    valid = false
+                    exps = attr.value.split(',')
+                    j = exps.length
+                    while (j--) {
+                        exp = exps[j]
+                        directive = DirectiveParser.parse(attr.name, exp)
                         if (directive) {
                             valid = true
                             directive.el = node
                             seed._bind(directive)
                         }
-                    })
+                    }
                     if (valid) node.removeAttribute(attr.name)
-                })
+                }
             }
             // recursively compile childNodes
             if (node.childNodes.length) {
@@ -183,8 +194,7 @@ SeedProto._bind = function (directive) {
     // deal with nesting
     seed = traceOwnerSeed(directive, seed)
     var binding = seed._bindings[key] || seed._createBinding(key)
-
-    // add directive to this binding
+    
     binding.instances.push(directive)
     directive.binding = binding
 
@@ -208,6 +218,23 @@ SeedProto._createBinding = function (key) {
     this._bindings[key] = binding
     if (binding.isComputed) this._computed.push(binding)
     return binding
+}
+
+/*
+ *  Process subscriptions for computed properties that has
+ *  dynamic context dependencies
+ */
+SeedProto._bindContexts = function (bindings) {
+    var i = bindings.length, j, binding, depKey, dep
+    while (i--) {
+        binding = bindings[i]
+        j = binding.contextDeps.length
+        while (j--) {
+            depKey = binding.contextDeps[j]
+            dep = this._bindings[depKey]
+            dep.subs.push(binding)
+        }
+    }
 }
 
 /*

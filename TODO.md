@@ -1,6 +1,6 @@
-- grunt release task
-- set version in bower/package/component.json
-- wrap dist/seed.js in closure and expose Seed to window
+- tests
+- docs
+- validation as filter, e.g. sd-value="email | validate email"
 - sd-with
 - standarized way to reuse components (sd-component?)
 - plugins: seed-touch, seed-storage, seed-router

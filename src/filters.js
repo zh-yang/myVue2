@@ -1,12 +1,12 @@
 var keyCodes = {
-    enter: 13,
-    tab: 9,
-    'delete': 46,
-    up: 38,
-    left: 37,
-    right: 39,
-    down: 40,
-    esc: 27
+    enter    : 13,
+    tab      : 9,
+    'delete' : 46,
+    up       : 38,
+    left     : 37,
+    right    : 39,
+    down     : 40,
+    esc      : 27
 }
 
 module.exports = {
@@ -23,6 +23,9 @@ module.exports = {
     },
     lowercase: function (value) {
         return value ? value.toString().toLowerCase() : ''
+    },
+    pluralize: function (value, args) {
+        return value === 1 ? args[0] : (args[1] || args[0] + 's')
     },
     currency: function (value, args) {
         if (!value) return ''

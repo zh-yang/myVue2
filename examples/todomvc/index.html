@@ -9,10 +9,8 @@
 
 <body>
     <section id="todoapp" sd-controller="Todos">
-
         <header id="header">
             <h1>todos</h1>
-            <!-- main input box -->
             <input id="new-todo"
                 autofocus
                 autocomplete="off"
@@ -21,12 +19,9 @@
                 sd-on="keyup:addTodo | key enter"
             >
         </header>
-
         <section id="main" sd-show="total">
-            <!-- toggle all checkbox-->
             <input id="toggle-all" type="checkbox" sd-checked="allDone">
             <ul id="todo-list">
-                <!-- a single todo item -->
                 <li class="todo" sd-each="todo:todos" sd-show="filterTodo" sd-class="completed:todo.completed, editing:todo.editing">
                     <div class="view">
                         <input class="toggle" type="checkbox" sd-checked="todo.completed" sd-on="change:updateCount">
@@ -39,34 +34,25 @@
                 </li>
             </ul>
         </section>
-
-        <!-- footer controls -->
         <footer id="footer" sd-show="total">
             <span id="todo-count">
-                <strong sd-text="remaining"></strong>
-                <span sd-text="itemLabel"></span>
-                left
+                <strong sd-text="remaining"></strong> {{remaining | pluralize item}} left
             </span>
             <ul id="filters">
                 <li><a href="#/all" sd-class="selected:checkFilter">All</a></li>
                 <li><a href="#/active" sd-class="selected:checkFilter">Active</a></li>
                 <li><a href="#/completed" sd-class="selected:checkFilter">Completed</a></li>
             </ul>
-            <button id="clear-completed" sd-on="click:removeCompleted" sd-show="completed">
-                Remove Completed (<span sd-text="completed"></span>)
+            <button id="clear-completed" sd-on="click:removeCompleted" sd-show="completedCount">
+                Remove Completed (<span sd-text="completedCount"></span>)
             </button>
         </footer>
-
     </section>
-
-    <!-- info -->
     <footer id="info">
         <p>Double-click to edit a todo</p>
         <p>Powered by <a href="https://github.com/yyx990803/seed">Seed.js</a></p>
         <p>Created by <a href="http://evanyou.me">Evan You</a></p>
     </footer>
-
-    <!-- js -->
     <script src="../../dist/vue.js"></script>
     <script src="js/app.js"></script>
 </body>
